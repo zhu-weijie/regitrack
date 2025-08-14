@@ -1,0 +1,24 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: ./apps/api/Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      # Mount ONLY the API's source code for hot-reloading
+      - ./apps/api:/app/apps/api
+    environment:
+      - NODE_ENV=development
+
+  client:
+    build:
+      context: .
+      dockerfile: ./apps/client/Dockerfile
+    ports:
+      - "5173:5173"
+    volumes:
+      # Mount ONLY the client's source code for hot-reloading
+      - ./apps/client:/app/apps/client
+    environment:
+      - CHOKIDAR_USEPOLLING=true
