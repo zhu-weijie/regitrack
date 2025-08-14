@@ -7,13 +7,14 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "lint": "eslint src/ --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\""   
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "packageManager": "pnpm@10.14.0",
   "dependencies": {
+    "csv-parser": "^3.2.0",
     "express": "^5.1.0"
   },
   "devDependencies": {
