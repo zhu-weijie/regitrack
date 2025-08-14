@@ -1,11 +1,7 @@
-const tseslint = require('typescript-eslint');
-const prettierConfig = require('eslint-plugin-prettier/recommended');
-
-module.exports = tseslint.config(
-  require('@eslint/js').configs.recommended,
-  ...tseslint.configs.recommended,
-  prettierConfig,
-  {
-    ignores: ['dist/'],
-  }
-);
+{
+    "semi": true,
+    "trailingComma": "es5",
+    "singleQuote": true,
+    "printWidth": 80,
+    "tabWidth": 2
+}
