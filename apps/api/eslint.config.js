@@ -1,11 +1,7 @@
 const tseslint = require('typescript-eslint');
-const prettierConfig = require('eslint-plugin-prettier/recommended');
+const baseConfig = require('../../eslint.config.js'); // Import from root
 
-module.exports = tseslint.config(
-  require('@eslint/js').configs.recommended,
-  ...tseslint.configs.recommended,
-  prettierConfig,
-  {
-    ignores: ['dist/'],
-  }
-);
+module.exports = tseslint.config(...baseConfig, {
+  // Add api-specific settings here
+  ignores: ['dist/'],
+});
