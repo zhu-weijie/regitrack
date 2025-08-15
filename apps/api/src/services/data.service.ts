@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import csv from 'csv-parser';
-import { Vehicle } from '../types/vehicle';
+import type { Vehicle } from '../types/vehicle';
 
 const dataDirectory = path.join(__dirname, '..', 'data');
 

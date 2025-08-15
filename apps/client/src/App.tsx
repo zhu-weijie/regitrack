@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Vehicle } from './types/vehicle';
+import type { Vehicle } from './types/vehicle';
 import { getVehicles } from './services/apiService';
 import { VehicleTable } from './components/VehicleTable';
 import { CircularProgress, Box } from '@mui/material';

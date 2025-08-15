@@ -10,7 +10,7 @@ import {
   Box,
   Typography,
 } from '@mui/material';
-import { Vehicle } from '../types/vehicle';
+import type { Vehicle } from '../types/vehicle';
 
 interface VehicleTableProps {
   vehicles: Vehicle[];
