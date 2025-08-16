@@ -37,3 +37,8 @@ output "lb_target_group_arn" {
   description = "The ARN of the main LB Target Group"
   value       = aws_lb_target_group.main.arn
 }
+
+output "ecs_task_execution_role_arn" {
+  description = "The ARN of the ECS task execution role"
+  value       = aws_iam_role.ecs_task_execution_role.arn
+}
