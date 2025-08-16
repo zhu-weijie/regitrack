@@ -180,32 +180,32 @@ resource "aws_ecs_task_definition" "nginx" {
 }
 
 # 11. Create the API Service
-# This service runs the API task but does not attach it to the load balancer.
 resource "aws_ecs_service" "api" {
   name            = "regitrack-api-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.api.arn
-  desired_count   = 1 # Run one instance of our API container
+  desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = [aws_subnet.public_a.id, aws_subnet.public_b.id]
-    security_groups = [aws_security_group.ecs_service.id]
+    subnets          = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+    security_groups  = [aws_security_group.ecs_service.id]
+    assign_public_ip = true
   }
 }
 
 # 12. Create the Nginx Service
-# This service runs the Nginx task and attaches it to the load balancer.
 resource "aws_ecs_service" "nginx" {
   name            = "regitrack-nginx-service"
   cluster         = aws_ecs_cluster.main.id
   task_definition = aws_ecs_task_definition.nginx.arn
-  desired_count   = 1 # Run one instance of our Nginx container
+  desired_count   = 1
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets         = [aws_subnet.public_a.id, aws_subnet.public_b.id]
-    security_groups = [aws_security_group.ecs_service.id]
+    subnets          = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+    security_groups  = [aws_security_group.ecs_service.id]
+    assign_public_ip = true
   }
 
   load_balancer {
@@ -214,6 +214,5 @@ resource "aws_ecs_service" "nginx" {
     container_port   = 80
   }
 
-  # This ensures the nginx service doesn't start until the api service is stable.
   depends_on = [aws_ecs_service.api]
 }
