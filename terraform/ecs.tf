@@ -77,17 +77,24 @@ resource "aws_lb" "main" {
 }
 
 # 6. Create a Target Group for the ALB
-# The target group is where our ECS service will register its containers
 resource "aws_lb_target_group" "main" {
   name        = "regitrack-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
-  target_type = "ip" # Required for Fargate
+  target_type = "ip"
 
+  # Add a more lenient health check configuration
   health_check {
-    path = "/"
-  }
+    path                = "/"
+    protocol            = "HTTP"
+    port                = "traffic-port"
+    healthy_threshold   = 2     # Becomes healthy after 2 successful checks
+    unhealthy_threshold = 2     # Becomes unhealthy after 2 failed checks
+    timeout             = 5     # Wait 5 seconds for a response
+    interval            = 10    # Wait 10 seconds between checks
+    matcher             = "200" # Expect a 200 OK status code
+  }c
 }
 
 # 7. Create a Listener for the ALB
