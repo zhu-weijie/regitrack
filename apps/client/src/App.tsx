@@ -8,7 +8,8 @@ import { VehicleDetailModal } from './components/VehicleDetailModal';
 import { VehicleCalendar } from './components/VehicleCalendar';
 import { CalendarControls } from './components/CalendarControls';
 import { FilterControls, type Filters } from './components/FilterControls';
-import { CircularProgress, Box, Container } from '@mui/material';
+import { Layout } from './components/Layout';
+import { CircularProgress, Box } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 
 type AppView = 'list' | 'calendar';
@@ -106,7 +107,7 @@ function App() {
   }
 
   return (
-    <Container maxWidth="lg">
+    <Layout>
       <CalendarControls
         appView={appView}
         calendarDate={calendarDate}
@@ -139,7 +140,7 @@ function App() {
         vehicle={selectedVehicle}
         onClose={handleCloseModal}
       />
-    </Container>
+    </Layout>
   );
 }
 
