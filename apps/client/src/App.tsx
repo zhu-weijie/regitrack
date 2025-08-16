@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { type View } from 'react-big-calendar';
 import { addYears, subYears } from 'date-fns';
 import type { Vehicle } from './types/vehicle';
@@ -7,7 +7,9 @@ import { VehicleTable } from './components/VehicleTable';
 import { VehicleDetailModal } from './components/VehicleDetailModal';
 import { VehicleCalendar } from './components/VehicleCalendar';
 import { CalendarControls } from './components/CalendarControls';
+import { FilterControls, type Filters } from './components/FilterControls';
 import { CircularProgress, Box } from '@mui/material';
+import type { SelectChangeEvent } from '@mui/material';
 
 type AppView = 'list' | 'calendar';
 
@@ -22,6 +24,12 @@ function App() {
   );
   const [calendarView, setCalendarView] = useState<View>('month');
 
+  const [filters, setFilters] = useState<Filters>({
+    status: 'ALL',
+    type: 'ALL',
+    vehicle_class: 'ALL',
+  });
+
   useEffect(() => {
     const fetchVehicles = async () => {
       const data = await getVehicles();
@@ -30,6 +38,26 @@ function App() {
     };
     fetchVehicles();
   }, []);
+
+  const handleFilterChange = (event: SelectChangeEvent<string>) => {
+    const { name, value } = event.target;
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [name]: value,
+    }));
+  };
+
+  const filteredVehicles = useMemo(() => {
+    return vehicles.filter((vehicle) => {
+      const statusMatch =
+        filters.status === 'ALL' || vehicle.status === filters.status;
+      const typeMatch = filters.type === 'ALL' || vehicle.type === filters.type;
+      const classMatch =
+        filters.vehicle_class === 'ALL' ||
+        vehicle.vehicle_class === filters.vehicle_class;
+      return statusMatch && typeMatch && classMatch;
+    });
+  }, [vehicles, filters]);
 
   const handleVehicleClick = (vehicle: Vehicle) => {
     setSelectedVehicle(vehicle);
@@ -79,11 +107,16 @@ function App() {
         onNextYear={handleNextYear}
       />
 
+      <FilterControls filters={filters} onFilterChange={handleFilterChange} />
+
       {appView === 'list' ? (
-        <VehicleTable vehicles={vehicles} onVehicleClick={handleVehicleClick} />
+        <VehicleTable
+          vehicles={filteredVehicles}
+          onVehicleClick={handleVehicleClick}
+        />
       ) : (
         <VehicleCalendar
-          vehicles={vehicles}
+          vehicles={filteredVehicles}
           onSelectEvent={handleVehicleClick}
           date={calendarDate}
           view={calendarView}
