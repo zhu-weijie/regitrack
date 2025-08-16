@@ -4,10 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "lint": "eslint src/ --ext .ts",
-    "format": "prettier --write \"src/**/*.ts\""
+    "format": "prettier --write \"src/**/*.ts\"",
+    "build": "rimraf dist && tsc && copyfiles -u 1 \"src/data/**/*.csv\" dist"
   },
   "keywords": [],
   "author": "",
