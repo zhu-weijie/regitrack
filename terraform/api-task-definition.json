@@ -1,0 +1,23 @@
+{
+    "family": "regitrack-api",
+    "networkMode": "awsvpc",
+    "requiresCompatibilities": ["FARGATE"],
+    "cpu": "256",
+    "memory": "512",
+    "executionRoleArn": "${ECS_TASK_EXECUTION_ROLE_ARN}",
+    "containerDefinitions": [
+      {
+        "name": "regitrack-api",
+        "image": "<IMAGE_URI>",
+        "cpu": 256,
+        "memory": 512,
+        "essential": true,
+        "portMappings": [
+          {
+            "containerPort": 3000,
+            "hostPort": 3000
+          }
+        ]
+      }
+    ]
+}
