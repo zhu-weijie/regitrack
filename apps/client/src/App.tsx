@@ -121,7 +121,7 @@ function App() {
           date={calendarDate}
           view={calendarView}
           onNavigate={setCalendarDate}
-          onView={setCalendarView}
+          onViewChange={setCalendarView}
         />
       )}
 
