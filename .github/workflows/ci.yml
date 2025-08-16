@@ -1,6 +1,5 @@
 name: Continuous Integration
 
-# Controls when the workflow will run
 on:
   push:
     branches: [ "main" ]
@@ -9,34 +8,26 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest # Use a standard Linux runner
+    runs-on: ubuntu-latest
 
     steps:
-      # 1. Check out the repository code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Set up pnpm for dependency management
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
-        with:
-          version: 10 # Use the same major version as your local pnpm
 
-      # 3. Set up Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '22'
-          cache: 'pnpm' # Enable caching for pnpm
+          cache: 'pnpm'
 
-      # 4. Install dependencies
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --force
 
-      # 5. Run the linter across the entire workspace
       - name: Run linter
         run: pnpm lint
 
-      # 6. Run the production Docker build to ensure it's not broken
       - name: Run production build
         run: pnpm docker:prod:build
