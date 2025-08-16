@@ -102,3 +102,118 @@ resource "aws_lb_listener" "http" {
     target_group_arn = aws_lb_target_group.main.arn
   }
 }
+
+# 8. Create an IAM Role for ECS Task Execution
+# This gives Fargate permission to pull images from ECR and write logs.
+resource "aws_iam_role" "ecs_task_execution_role" {
+  name = "regitrack-ecs-task-execution-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17",
+    Statement = [
+      {
+        Action = "sts:AssumeRole",
+        Effect = "Allow",
+        Principal = {
+          Service = "ecs-tasks.amazonaws.com"
+        }
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+}
+
+# 9. Define the API Task Definition
+resource "aws_ecs_task_definition" "api" {
+  family                   = "regitrack-api"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256" # 0.25 vCPU
+  memory                   = "512" # 512 MB
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "regitrack-api",
+      image     = aws_ecr_repository.api.repository_url,
+      cpu       = 256,
+      memory    = 512,
+      essential = true,
+      portMappings = [
+        {
+          containerPort = 3000,
+          hostPort      = 3000
+        }
+      ]
+    }
+  ])
+}
+
+# 10. Define the Nginx Task Definition
+resource "aws_ecs_task_definition" "nginx" {
+  family                   = "regitrack-nginx"
+  network_mode             = "awsvpc"
+  requires_compatibilities = ["FARGATE"]
+  cpu                      = "256"
+  memory                   = "512"
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
+
+  container_definitions = jsonencode([
+    {
+      name      = "regitrack-nginx",
+      image     = aws_ecr_repository.nginx.repository_url,
+      cpu       = 256,
+      memory    = 512,
+      essential = true,
+      portMappings = [
+        {
+          containerPort = 80,
+          hostPort      = 80
+        }
+      ]
+    }
+  ])
+}
+
+# 11. Create the API Service
+# This service runs the API task but does not attach it to the load balancer.
+resource "aws_ecs_service" "api" {
+  name            = "regitrack-api-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.api.arn
+  desired_count   = 1 # Run one instance of our API container
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets         = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+    security_groups = [aws_security_group.ecs_service.id]
+  }
+}
+
+# 12. Create the Nginx Service
+# This service runs the Nginx task and attaches it to the load balancer.
+resource "aws_ecs_service" "nginx" {
+  name            = "regitrack-nginx-service"
+  cluster         = aws_ecs_cluster.main.id
+  task_definition = aws_ecs_task_definition.nginx.arn
+  desired_count   = 1 # Run one instance of our Nginx container
+  launch_type     = "FARGATE"
+
+  network_configuration {
+    subnets         = [aws_subnet.public_a.id, aws_subnet.public_b.id]
+    security_groups = [aws_security_group.ecs_service.id]
+  }
+
+  load_balancer {
+    target_group_arn = aws_lb_target_group.main.arn
+    container_name   = "regitrack-nginx"
+    container_port   = 80
+  }
+
+  # This ensures the nginx service doesn't start until the api service is stable.
+  depends_on = [aws_ecs_service.api]
+}
