@@ -1,4 +1,4 @@
-import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import { Calendar, dateFnsLocalizer, type View } from 'react-big-calendar';
 import type { ComponentProps } from 'react';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
@@ -41,11 +41,19 @@ const CustomEvent = (props: CustomEventProps) => {
 interface VehicleCalendarProps {
   vehicles: Vehicle[];
   onSelectEvent: (vehicle: Vehicle) => void;
+  date: Date;
+  view: View;
+  onNavigate: (newDate: Date) => void;
+  onView: (newView: View) => void;
 }
 
 export const VehicleCalendar = ({
   vehicles,
   onSelectEvent,
+  date,
+  view,
+  onNavigate,
+  onView,
 }: VehicleCalendarProps) => {
   // Map vehicle data to the format react-big-calendar expects
   const events = vehicles.map((vehicle) => {
@@ -74,6 +82,10 @@ export const VehicleCalendar = ({
           components={{
             event: CustomEvent,
           }}
+          date={date}
+          view={view}
+          onNavigate={onNavigate}
+          onView={onView}
         />
       </Paper>
     </Box>

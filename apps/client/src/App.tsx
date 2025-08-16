@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { type View } from 'react-big-calendar';
 import type { Vehicle } from './types/vehicle';
 import { getVehicles } from './services/apiService';
 import { VehicleTable } from './components/VehicleTable';
@@ -11,13 +12,16 @@ import {
   ToggleButton,
 } from '@mui/material';
 
-type View = 'list' | 'calendar';
+type AppView = 'list' | 'calendar';
 
 function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null); // State for the selected vehicle
-  const [view, setView] = useState<View>('list');
+  const [appView, setAppView] = useState<AppView>('list');
+
+  const [calendarDate, setCalendarDate] = useState<Date>(new Date());
+  const [calendarView, setCalendarView] = useState<View>('month');
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -38,10 +42,10 @@ function App() {
 
   const handleViewChange = (
     _event: React.MouseEvent<HTMLElement>,
-    newView: View | null
+    newView: AppView | null
   ) => {
     if (newView !== null) {
-      setView(newView);
+      setAppView(newView);
     }
   };
 
@@ -63,7 +67,7 @@ function App() {
       <Box sx={{ padding: 3, display: 'flex', justifyContent: 'center' }}>
         <ToggleButtonGroup
           color="primary"
-          value={view}
+          value={appView}
           exclusive
           onChange={handleViewChange}
           aria-label="view toggle"
@@ -73,12 +77,16 @@ function App() {
         </ToggleButtonGroup>
       </Box>
 
-      {view === 'list' ? (
+      {appView === 'list' ? (
         <VehicleTable vehicles={vehicles} onVehicleClick={handleVehicleClick} />
       ) : (
         <VehicleCalendar
           vehicles={vehicles}
           onSelectEvent={handleVehicleClick}
+          date={calendarDate}
+          view={calendarView}
+          onNavigate={setCalendarDate}
+          onView={setCalendarView}
         />
       )}
 
