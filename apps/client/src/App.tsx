@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { type View } from 'react-big-calendar';
-import { addYears, subYears } from 'date-fns';
+import { addYears, subYears, addMonths, subMonths } from 'date-fns';
 import type { Vehicle } from './types/vehicle';
 import { getVehicles } from './services/apiService';
 import { VehicleTable } from './components/VehicleTable';
@@ -8,7 +8,7 @@ import { VehicleDetailModal } from './components/VehicleDetailModal';
 import { VehicleCalendar } from './components/VehicleCalendar';
 import { CalendarControls } from './components/CalendarControls';
 import { FilterControls, type Filters } from './components/FilterControls';
-import { CircularProgress, Box } from '@mui/material';
+import { CircularProgress, Box, Container } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 
 type AppView = 'list' | 'calendar';
@@ -84,6 +84,14 @@ function App() {
     setCalendarDate((prevDate) => addYears(prevDate, 1));
   };
 
+  const handlePrevMonth = () => {
+    setCalendarDate((prevDate) => subMonths(prevDate, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCalendarDate((prevDate) => addMonths(prevDate, 1));
+  };
+
   if (loading) {
     return (
       <Box
@@ -98,13 +106,15 @@ function App() {
   }
 
   return (
-    <>
+    <Container maxWidth="lg">
       <CalendarControls
         appView={appView}
         calendarDate={calendarDate}
         onAppViewChange={handleViewChange}
         onPrevYear={handlePrevYear}
         onNextYear={handleNextYear}
+        onPrevMonth={handlePrevMonth}
+        onNextMonth={handleNextMonth}
       />
 
       <FilterControls filters={filters} onFilterChange={handleFilterChange} />
@@ -121,7 +131,7 @@ function App() {
           date={calendarDate}
           view={calendarView}
           onNavigate={setCalendarDate}
-          onView={setCalendarView}
+          onViewChange={setCalendarView}
         />
       )}
 
@@ -129,7 +139,7 @@ function App() {
         vehicle={selectedVehicle}
         onClose={handleCloseModal}
       />
-    </>
+    </Container>
   );
 }
 

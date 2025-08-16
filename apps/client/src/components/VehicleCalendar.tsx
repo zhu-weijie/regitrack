@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { Calendar, dateFnsLocalizer, type View } from 'react-big-calendar';
 import type { ComponentProps } from 'react';
 import format from 'date-fns/format';
@@ -7,7 +8,14 @@ import getDay from 'date-fns/getDay';
 import enUS from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import type { Vehicle } from '../types/vehicle';
-import { Box, Paper, Chip, Typography } from '@mui/material';
+import {
+  Box,
+  Paper,
+  Chip,
+  Typography,
+  useTheme,
+  useMediaQuery,
+} from '@mui/material';
 
 const locales = {
   'en-US': enUS,
@@ -44,7 +52,7 @@ interface VehicleCalendarProps {
   date: Date;
   view: View;
   onNavigate: (newDate: Date) => void;
-  onView: (newView: View) => void;
+  onViewChange: (newView: View) => void;
 }
 
 export const VehicleCalendar = ({
@@ -53,8 +61,17 @@ export const VehicleCalendar = ({
   date,
   view,
   onNavigate,
-  onView,
+  onViewChange,
 }: VehicleCalendarProps) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+
+  useEffect(() => {
+    if (isMobile) {
+      onViewChange('agenda');
+    }
+  }, [isMobile, onViewChange]);
+
   // Map vehicle data to the format react-big-calendar expects
   const events = vehicles.map((vehicle) => {
     // The date format from CSV is 'dd/MM/yyyy'
@@ -85,7 +102,8 @@ export const VehicleCalendar = ({
           date={date}
           view={view}
           onNavigate={onNavigate}
-          onView={onView}
+          onView={onViewChange}
+          toolbar={!isMobile}
         />
       </Paper>
     </Box>
