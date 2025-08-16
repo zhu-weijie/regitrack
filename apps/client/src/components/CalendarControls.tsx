@@ -5,8 +5,6 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Typography,
-  useTheme,
-  useMediaQuery, // Add media query hooks
 } from '@mui/material';
 import KeyboardDoubleArrowLeftIcon from '@mui/icons-material/KeyboardDoubleArrowLeft';
 import KeyboardDoubleArrowRightIcon from '@mui/icons-material/KeyboardDoubleArrowRight';
@@ -19,10 +17,7 @@ type AppView = 'list' | 'calendar';
 interface CalendarControlsProps {
   appView: AppView;
   calendarDate: Date;
-  onAppViewChange: (
-    _event: React.MouseEvent<HTMLElement>,
-    newView: AppView | null
-  ) => void;
+  onAppViewChange: (/*...*/) => void;
   onPrevYear: () => void;
   onNextYear: () => void;
   onPrevMonth: () => void;
@@ -38,8 +33,6 @@ export const CalendarControls = ({
   onPrevMonth,
   onNextMonth,
 }: CalendarControlsProps) => {
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   return (
     <Box
       sx={{
@@ -61,30 +54,34 @@ export const CalendarControls = ({
         <ToggleButton value="calendar">Calendar View</ToggleButton>
       </ToggleButtonGroup>
 
-      {appView === 'calendar' && !isMobile && (
-        <ButtonGroup
-          variant="outlined"
-          aria-label="desktop calendar navigation"
-        >
-          <Button onClick={onPrevYear}>
+      {/* --- RENDER UNIFIED CONTROLS FOR ALL SIZES --- */}
+      {appView === 'calendar' && (
+        <ButtonGroup variant="outlined" aria-label="calendar navigation">
+          <Button onClick={onPrevYear} title="Previous Year">
             <KeyboardDoubleArrowLeftIcon />
           </Button>
-          <Typography /* ... */>{format(calendarDate, 'MMMM yyyy')}</Typography>
-          <Button onClick={onNextYear}>
-            <KeyboardDoubleArrowRightIcon />
-          </Button>
-        </ButtonGroup>
-      )}
-
-      {/* --- MOBILE MONTH NAVIGATION --- */}
-      {appView === 'calendar' && isMobile && (
-        <ButtonGroup variant="outlined" aria-label="mobile calendar navigation">
-          <Button onClick={onPrevMonth}>
+          <Button onClick={onPrevMonth} title="Previous Month">
             <ChevronLeftIcon />
           </Button>
-          <Typography /* ... */>{format(calendarDate, 'MMMM yyyy')}</Typography>
-          <Button onClick={onNextMonth}>
+          <Typography
+            sx={{
+              padding: { xs: '0 8px', sm: '0 16px' }, // Adjust padding for mobile
+              display: 'flex',
+              alignItems: 'center',
+              borderTop: '1px solid rgba(25, 118, 210, 0.5)',
+              borderBottom: '1px solid rgba(25, 118, 210, 0.5)',
+              minWidth: { xs: '120px', sm: '150px' }, // Adjust min-width for mobile
+              justifyContent: 'center',
+              fontSize: { xs: '0.875rem', sm: '1rem' }, // Adjust font size for mobile
+            }}
+          >
+            {format(calendarDate, 'MMMM yyyy')}
+          </Typography>
+          <Button onClick={onNextMonth} title="Next Month">
             <ChevronRightIcon />
+          </Button>
+          <Button onClick={onNextYear} title="Next Year">
+            <KeyboardDoubleArrowRightIcon />
           </Button>
         </ButtonGroup>
       )}
