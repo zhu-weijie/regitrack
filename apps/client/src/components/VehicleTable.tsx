@@ -14,9 +14,13 @@ import type { Vehicle } from '../types/vehicle';
 
 interface VehicleTableProps {
   vehicles: Vehicle[];
+  onVehicleClick: (vehicle: Vehicle) => void;
 }
 
-export const VehicleTable = ({ vehicles }: VehicleTableProps) => {
+export const VehicleTable = ({
+  vehicles,
+  onVehicleClick,
+}: VehicleTableProps) => {
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h4" gutterBottom>
@@ -35,7 +39,13 @@ export const VehicleTable = ({ vehicles }: VehicleTableProps) => {
           </TableHead>
           <TableBody>
             {vehicles.map((vehicle) => (
-              <TableRow key={vehicle.uuid}>
+              <TableRow
+                key={vehicle.uuid}
+                onClick={() => onVehicleClick(vehicle)}
+                sx={{
+                  '&:hover': { cursor: 'pointer', backgroundColor: '#f5f5f5' },
+                }}
+              >
                 <TableCell>{vehicle.brand}</TableCell>
                 <TableCell>{vehicle.type}</TableCell>
                 <TableCell style={{ textTransform: 'capitalize' }}>
