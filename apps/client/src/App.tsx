@@ -1,26 +1,25 @@
 import { useState, useEffect } from 'react';
 import { type View } from 'react-big-calendar';
+import { addYears, subYears } from 'date-fns';
 import type { Vehicle } from './types/vehicle';
 import { getVehicles } from './services/apiService';
 import { VehicleTable } from './components/VehicleTable';
 import { VehicleDetailModal } from './components/VehicleDetailModal';
 import { VehicleCalendar } from './components/VehicleCalendar';
-import {
-  CircularProgress,
-  Box,
-  ToggleButtonGroup,
-  ToggleButton,
-} from '@mui/material';
+import { CalendarControls } from './components/CalendarControls';
+import { CircularProgress, Box } from '@mui/material';
 
 type AppView = 'list' | 'calendar';
 
 function App() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null); // State for the selected vehicle
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
   const [appView, setAppView] = useState<AppView>('list');
 
-  const [calendarDate, setCalendarDate] = useState<Date>(new Date());
+  const [calendarDate, setCalendarDate] = useState<Date>(
+    new Date('2022-11-01')
+  );
   const [calendarView, setCalendarView] = useState<View>('month');
 
   useEffect(() => {
@@ -49,6 +48,14 @@ function App() {
     }
   };
 
+  const handlePrevYear = () => {
+    setCalendarDate((prevDate) => subYears(prevDate, 1));
+  };
+
+  const handleNextYear = () => {
+    setCalendarDate((prevDate) => addYears(prevDate, 1));
+  };
+
   if (loading) {
     return (
       <Box
@@ -64,18 +71,13 @@ function App() {
 
   return (
     <>
-      <Box sx={{ padding: 3, display: 'flex', justifyContent: 'center' }}>
-        <ToggleButtonGroup
-          color="primary"
-          value={appView}
-          exclusive
-          onChange={handleViewChange}
-          aria-label="view toggle"
-        >
-          <ToggleButton value="list">List View</ToggleButton>
-          <ToggleButton value="calendar">Calendar View</ToggleButton>
-        </ToggleButtonGroup>
-      </Box>
+      <CalendarControls
+        appView={appView}
+        calendarDate={calendarDate}
+        onAppViewChange={handleViewChange}
+        onPrevYear={handlePrevYear}
+        onNextYear={handleNextYear}
+      />
 
       {appView === 'list' ? (
         <VehicleTable vehicles={vehicles} onVehicleClick={handleVehicleClick} />
