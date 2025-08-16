@@ -77,16 +77,23 @@ resource "aws_lb" "main" {
 }
 
 # 6. Create a Target Group for the ALB
-# The target group is where our ECS service will register its containers
 resource "aws_lb_target_group" "main" {
   name        = "regitrack-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
-  target_type = "ip" # Required for Fargate
+  target_type = "ip"
 
+  # Add a more lenient health check configuration
   health_check {
-    path = "/"
+    path                = "/"
+    protocol            = "HTTP"
+    port                = "traffic-port"
+    healthy_threshold   = 2     # Becomes healthy after 2 successful checks
+    unhealthy_threshold = 2     # Becomes unhealthy after 2 failed checks
+    timeout             = 5     # Wait 5 seconds for a response
+    interval            = 10    # Wait 10 seconds between checks
+    matcher             = "200" # Expect a 200 OK status code
   }
 }
 
@@ -132,8 +139,8 @@ resource "aws_ecs_task_definition" "api" {
   family                   = "regitrack-api"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256" # 0.25 vCPU
-  memory                   = "512" # 512 MB
+  cpu                      = "256"
+  memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
@@ -149,8 +156,18 @@ resource "aws_ecs_task_definition" "api" {
           hostPort      = 3000
         }
       ]
+      # --- THE LIFECYCLE BLOCK WAS INCORRECTLY PLACED INSIDE THIS JSON ---
     }
   ])
+
+  # --- THIS IS THE CORRECT LOCATION FOR THE LIFECYCLE BLOCK ---
+  lifecycle {
+    ignore_changes = [
+      container_definitions,
+      cpu,
+      memory,
+    ]
+  }
 }
 
 # 10. Define the Nginx Task Definition
@@ -175,8 +192,18 @@ resource "aws_ecs_task_definition" "nginx" {
           hostPort      = 80
         }
       ]
+      # --- THE LIFECYCLE BLOCK WAS INCORRECTLY PLACED INSIDE THIS JSON ---
     }
   ])
+
+  # --- THIS IS THE CORRECT LOCATION FOR THE LIFECYCLE BLOCK ---
+  lifecycle {
+    ignore_changes = [
+      container_definitions,
+      cpu,
+      memory,
+    ]
+  }
 }
 
 # 11. Create the API Service

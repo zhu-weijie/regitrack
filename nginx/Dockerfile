@@ -10,8 +10,14 @@ RUN pnpm --filter client run build
 # --- Stage 2: Create the final Nginx image ---
 FROM nginx:alpine
 
+# Copy our custom Nginx configuration
 COPY ./nginx/nginx.conf /etc/nginx/conf.d/default.conf
+
+COPY ./nginx/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+# Copy the built static files from the client-builder stage
 COPY --from=client-builder /app/apps/client/dist /usr/share/nginx/html
 
 EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["/docker-entrypoint.sh"]
