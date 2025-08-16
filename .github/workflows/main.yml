@@ -83,21 +83,35 @@ jobs:
           docker build -t $ECR_REGISTRY/$NGINX_ECR_REPOSITORY:$IMAGE_TAG -f nginx/Dockerfile .
           docker push $ECR_REGISTRY/$NGINX_ECR_REPOSITORY:$IMAGE_TAG
           echo "image=$ECR_REGISTRY/$NGINX_ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+      
+      - name: Render API task definition
+        id: render-api-task
+        run: |
+          sed -e "s|<IMAGE_URI>|${{ steps.build-api-image.outputs.image }}|g" \
+              -e "s|\${ECS_TASK_EXECUTION_ROLE_ARN}|${{ secrets.ECS_TASK_EXECUTION_ROLE_ARN }}|g" \
+              terraform/api-task-definition.json > task-definition-api.json
+          echo "task_definition_path=$(pwd)/task-definition-api.json" >> $GITHUB_OUTPUT
 
-      - name: Render and Deploy API Task Definition
+      - name: Render Nginx task definition
+        id: render-nginx-task
+        run: |
+          sed -e "s|<IMAGE_URI>|${{ steps.build-nginx-image.outputs.image }}|g" \
+              -e "s|\${ECS_TASK_EXECUTION_ROLE_ARN}|${{ secrets.ECS_TASK_EXECUTION_ROLE_ARN }}|g" \
+              terraform/nginx-task-definition.json > task-definition-nginx.json
+          echo "task_definition_path=$(pwd)/task-definition-nginx.json" >> $GITHUB_OUTPUT
+
+      - name: Deploy API Task Definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: terraform/api-task-definition.json
+          task-definition: ${{ steps.render-api-task.outputs.task_definition_path }}
           service: ${{ env.API_ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER_NAME }}
-          wait-for-service-stability: false # Allows parallel deployment
-          image: ${{ steps.build-api-image.outputs.image }}
+          wait-for-service-stability: false
 
-      - name: Render and Deploy Nginx Task Definition
+      - name: Deploy Nginx Task Definition
         uses: aws-actions/amazon-ecs-deploy-task-definition@v1
         with:
-          task-definition: terraform/nginx-task-definition.json
+          task-definition: ${{ steps.render-nginx-task.outputs.task_definition_path }}
           service: ${{ env.NGINX_ECS_SERVICE }}
           cluster: ${{ env.ECS_CLUSTER_NAME }}
-          wait-for-service-stability: true # Wait for the full deployment to finish
-          image: ${{ steps.build-nginx-image.outputs.image }}
+          wait-for-service-stability: true
