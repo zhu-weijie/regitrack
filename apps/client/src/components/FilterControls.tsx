@@ -1,11 +1,5 @@
-import {
-  Box,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Grid,
-} from '@mui/material';
+import { Box, FormControl, InputLabel, Select, MenuItem } from '@mui/material';
+import Grid from '@mui/material/Grid';
 import type { SelectChangeEvent } from '@mui/material';
 
 export interface Filters {
@@ -29,7 +23,7 @@ export const FilterControls = ({
   return (
     <Box sx={{ paddingX: 3, paddingBottom: 2 }}>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <InputLabel id="status-filter-label">Status</InputLabel>
             <Select
@@ -45,7 +39,7 @@ export const FilterControls = ({
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <InputLabel id="type-filter-label">Vehicle Type</InputLabel>
             <Select
@@ -61,7 +55,7 @@ export const FilterControls = ({
             </Select>
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <InputLabel id="class-filter-label">Vehicle Class</InputLabel>
             <Select
