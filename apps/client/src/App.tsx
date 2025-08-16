@@ -37,7 +37,7 @@ function App() {
   };
 
   const handleViewChange = (
-    event: React.MouseEvent<HTMLElement>,
+    _event: React.MouseEvent<HTMLElement>,
     newView: View | null
   ) => {
     if (newView !== null) {

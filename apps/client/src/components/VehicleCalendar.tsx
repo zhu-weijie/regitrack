@@ -1,4 +1,5 @@
-import { Calendar, dateFnsLocalizer, EventProps } from 'react-big-calendar';
+import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import type { ComponentProps } from 'react';
 import format from 'date-fns/format';
 import parse from 'date-fns/parse';
 import startOfWeek from 'date-fns/startOfWeek';
@@ -20,8 +21,12 @@ const localizer = dateFnsLocalizer({
   locales,
 });
 
-// Custom Event component for styling
-const CustomEvent = (props: EventProps<Vehicle>) => {
+type CustomEventProps = ComponentProps<typeof Calendar>['components']['event'];
+
+const CustomEvent = (props: CustomEventProps) => {
+  if (!props.event) {
+    return null;
+  }
   const { event } = props;
   return (
     <Chip
