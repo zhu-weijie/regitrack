@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { type View } from 'react-big-calendar';
-import { addYears, subYears } from 'date-fns';
+import { addYears, subYears, addMonths, subMonths } from 'date-fns';
 import type { Vehicle } from './types/vehicle';
 import { getVehicles } from './services/apiService';
 import { VehicleTable } from './components/VehicleTable';
@@ -84,6 +84,14 @@ function App() {
     setCalendarDate((prevDate) => addYears(prevDate, 1));
   };
 
+  const handlePrevMonth = () => {
+    setCalendarDate((prevDate) => subMonths(prevDate, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCalendarDate((prevDate) => addMonths(prevDate, 1));
+  };
+
   if (loading) {
     return (
       <Box
@@ -105,6 +113,8 @@ function App() {
         onAppViewChange={handleViewChange}
         onPrevYear={handlePrevYear}
         onNextYear={handleNextYear}
+        onPrevMonth={handlePrevMonth}
+        onNextMonth={handleNextMonth}
       />
 
       <FilterControls filters={filters} onFilterChange={handleFilterChange} />
