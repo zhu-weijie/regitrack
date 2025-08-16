@@ -2,7 +2,7 @@ import axios from 'axios';
 import type { Vehicle } from '../types/vehicle';
 
 // The API base URL will point to our Dockerized backend service
-const API_URL = 'http://localhost:3000/api';
+const API_URL = '/api';
 
 export const getVehicles = async (): Promise<Vehicle[]> => {
   try {
