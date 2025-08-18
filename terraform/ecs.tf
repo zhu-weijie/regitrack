@@ -115,16 +115,15 @@ resource "aws_lb_target_group" "main" {
   vpc_id      = aws_vpc.main.id
   target_type = "ip"
 
-  # Add a more lenient health check configuration
   health_check {
-    path                = "/"
+    path                = "/health"
     protocol            = "HTTP"
     port                = "traffic-port"
-    healthy_threshold   = 2     # Becomes healthy after 2 successful checks
-    unhealthy_threshold = 2     # Becomes unhealthy after 2 failed checks
-    timeout             = 5     # Wait 5 seconds for a response
-    interval            = 10    # Wait 10 seconds between checks
-    matcher             = "200" # Expect a 200 OK status code
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 5
+    interval            = 10
+    matcher             = "200"
   }
 }
 
