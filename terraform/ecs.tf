@@ -36,13 +36,14 @@ resource "aws_ecs_cluster" "main" {
   }
 }
 
-# 4. Create a Security Group for our Fargate services
-resource "aws_security_group" "ecs_service" {
-  name        = "regitrack-ecs-service-sg"
-  description = "Allow HTTP inbound traffic for RegiTrack ECS services"
+# --- THIS RESOURCE IS MODIFIED ---
+# 4. Create a Security Group for the Application Load Balancer
+resource "aws_security_group" "alb" {
+  name        = "regitrack-alb-sg" # Renamed
+  description = "Allow HTTP inbound traffic for RegiTrack ALB"
   vpc_id      = aws_vpc.main.id
 
-  # Allow inbound HTTP traffic from anywhere
+  # Allow inbound HTTP traffic from anywhere (the internet)
   ingress {
     from_port   = 80
     to_port     = 80
@@ -59,16 +60,46 @@ resource "aws_security_group" "ecs_service" {
   }
 
   tags = {
-    Name = "regitrack-ecs-service-sg"
+    Name = "regitrack-alb-sg" # Renamed
   }
 }
 
+# --- NEW RESOURCE ---
+# Create a dedicated Security Group for our Fargate services
+resource "aws_security_group" "ecs_service" {
+  name        = "regitrack-ecs-service-sg"
+  description = "Allow traffic from the ALB for RegiTrack ECS services"
+  vpc_id      = aws_vpc.main.id
+
+  # Allow inbound traffic on any port ONLY from the ALB's security group
+  ingress {
+    from_port       = 0
+    to_port         = 0
+    protocol        = "-1"
+    security_groups = [aws_security_group.alb.id] # Source is the ALB SG
+  }
+
+  # Allow all outbound traffic
+  egress {
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  tags = {
+    Name = "regitrack-ecs-service-sg"
+  }
+}
+# --- END NEW RESOURCE ---
+
+# --- THIS RESOURCE IS MODIFIED ---
 # 5. Create the Application Load Balancer (ALB)
 resource "aws_lb" "main" {
   name               = "regitrack-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.ecs_service.id]
+  security_groups    = [aws_security_group.alb.id] # Use the new ALB SG
   subnets            = [aws_subnet.public_a.id, aws_subnet.public_b.id]
 
   tags = {
@@ -77,16 +108,22 @@ resource "aws_lb" "main" {
 }
 
 # 6. Create a Target Group for the ALB
-# The target group is where our ECS service will register its containers
 resource "aws_lb_target_group" "main" {
   name        = "regitrack-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = aws_vpc.main.id
-  target_type = "ip" # Required for Fargate
+  target_type = "ip"
 
   health_check {
-    path = "/"
+    path                = "/health"
+    protocol            = "HTTP"
+    port                = "traffic-port"
+    healthy_threshold   = 2
+    unhealthy_threshold = 2
+    timeout             = 5
+    interval            = 10
+    matcher             = "200"
   }
 }
 
@@ -132,8 +169,8 @@ resource "aws_ecs_task_definition" "api" {
   family                   = "regitrack-api"
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
-  cpu                      = "256" # 0.25 vCPU
-  memory                   = "512" # 512 MB
+  cpu                      = "256"
+  memory                   = "512"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 
   container_definitions = jsonencode([
@@ -149,8 +186,18 @@ resource "aws_ecs_task_definition" "api" {
           hostPort      = 3000
         }
       ]
+      # --- THE LIFECYCLE BLOCK WAS INCORRECTLY PLACED INSIDE THIS JSON ---
     }
   ])
+
+  # --- THIS IS THE CORRECT LOCATION FOR THE LIFECYCLE BLOCK ---
+  lifecycle {
+    ignore_changes = [
+      container_definitions,
+      cpu,
+      memory,
+    ]
+  }
 }
 
 # 10. Define the Nginx Task Definition
@@ -175,8 +222,18 @@ resource "aws_ecs_task_definition" "nginx" {
           hostPort      = 80
         }
       ]
+      # --- THE LIFECYCLE BLOCK WAS INCORRECTLY PLACED INSIDE THIS JSON ---
     }
   ])
+
+  # --- THIS IS THE CORRECT LOCATION FOR THE LIFECYCLE BLOCK ---
+  lifecycle {
+    ignore_changes = [
+      container_definitions,
+      cpu,
+      memory,
+    ]
+  }
 }
 
 # 11. Create the API Service
@@ -189,7 +246,7 @@ resource "aws_ecs_service" "api" {
 
   network_configuration {
     subnets          = [aws_subnet.public_a.id, aws_subnet.public_b.id]
-    security_groups  = [aws_security_group.ecs_service.id]
+    security_groups  = [aws_security_group.ecs_service.id] # Use the new Service SG
     assign_public_ip = true
   }
 }
@@ -204,7 +261,7 @@ resource "aws_ecs_service" "nginx" {
 
   network_configuration {
     subnets          = [aws_subnet.public_a.id, aws_subnet.public_b.id]
-    security_groups  = [aws_security_group.ecs_service.id]
+    security_groups  = [aws_security_group.ecs_service.id] # Use the new Service SG
     assign_public_ip = true
   }
 
