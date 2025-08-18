@@ -199,3 +199,28 @@ graph TD
         ECR --> ECS[Update ECS Services];
     end
 ```
+
+### Data Flow Diagram (DFD)
+
+The path data takes from its source, through processing steps, to its destination.
+
+```mermaid
+graph TD
+    subgraph "Data Sources"
+        DS[CSV Files]
+    end
+
+    subgraph "RegiTrack System"
+        P1(1.0<br>Load & Cache Data);
+        P2(2.0<br>Filter & Serve Data);
+    end
+
+    subgraph "User Interface"
+        UI[Browser/Client]
+    end
+
+    DS -- "Raw Vehicle Records" --> P1;
+    P1 -- "Cached Vehicle Objects" --> P2;
+    P2 -- "Filtered JSON Payload" --> UI;
+    UI -- "User Filter Criteria" --> P2;
+```
