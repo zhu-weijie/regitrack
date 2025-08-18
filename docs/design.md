@@ -139,3 +139,63 @@ journey
     Click on a specific vehicle: 5: admin
     Review details in modal: 5: admin
 ```
+
+### Cloud Infrastructure Diagram
+
+The relationships between the VPC, Subnets, Internet Gateway, Load Balancer, and the ECS services.
+
+```mermaid
+graph TD
+    %% Define all nodes and their groupings first
+    subgraph "AWS Cloud (us-east-1)"
+        subgraph "VPC (10.0.0.0/16)"
+            IGW[Internet Gateway]
+            ALB[Application Load Balancer]
+
+            subgraph "Public Subnet A (us-east-1a)"
+                TaskA["ECS Task (nginx + api)"]
+            end
+
+            subgraph "Public Subnet B (us-east-1b)"
+                TaskB["ECS Task (nginx + api)"]
+            end
+        end
+
+        ECR[ECR Repositories]
+    end
+
+    %% Define all relationships at the end
+    User[Internet User] --> ALB
+    ALB --> TaskA
+    ALB --> TaskB
+    
+    TaskA -- "Pulls Image" --> ECR
+    TaskB -- "Pulls Image" --> ECR
+    
+    %% The route to the internet is via the IGW
+    TaskA -- "Outbound Traffic" --> IGW
+    TaskB -- "Outbound Traffic" --> IGW
+```
+
+### CI/CD Pipeline Diagram
+
+```mermaid
+graph TD
+    subgraph "GitHub Repository"
+        A[Push to any branch] --> PR{Pull Request};
+        M[Merge to main] --> PUSH_MAIN[Push to main];
+    end
+
+    subgraph "GitHub Actions"
+        PR --> B[Build and Test Job];
+        PUSH_MAIN --> B;
+        B -- on success --> D{Deploy Job?};
+        D -- Yes (is push to main) --> E[Deploy to AWS];
+        D -- No (is PR) --> F[Stop];
+    end
+
+    subgraph "AWS"
+        E --> ECR[Push Docker Images];
+        ECR --> ECS[Update ECS Services];
+    end
+```
