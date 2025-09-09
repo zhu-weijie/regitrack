@@ -1,7 +1,27 @@
 **Architecture-as-Code (AaC) Artifacts:**
 
 **1. Logical View (C4 Component Diagram)**
-*(No change to the logical view, as this is a physical implementation detail)*
+```mermaid
+C4Component
+  title Component Diagram for RegiTrack with CI/CD
+
+  Person(admin, "Administrator", "Views and manages vehicle data.")
+  
+  System_Boundary(regitrack, "RegiTrack System") {
+    Container(frontend, "Frontend Service", "React served by Nginx", "Serves the static UI assets.")
+    Container(backend, "Backend API", "Node.js, Express", "Provides vehicle data via a REST API.")
+  }
+
+  System_Ext(data, "Vehicle Data Store", "Embedded CSV Files")
+  System_Ext(cicd, "CI/CD Pipeline", "GitHub Actions", "Automates the building and deployment of the system.")
+  System_Ext(aws, "Amazon Web Services", "Hosts the running RegiTrack system.")
+
+  Rel(admin, frontend, "Uses", "HTTPS")
+  Rel(frontend, backend, "Makes API calls to", "JSON/HTTP")
+  Rel(backend, data, "Reads from")
+  
+  Rel(cicd, aws, "Deploys to")
+```
 
 **2. Physical View (AWS Deployment Diagram)**
 ```mermaid
@@ -12,28 +32,28 @@ graph TD
       subgraph "Public Subnets"
         ALB[Application Load Balancer]
         NAT[NAT Gateway]
+        NginxTaskA["ECS Task (Nginx)"]
+        NginxTaskB["ECS Task (Nginx)"]
       end
       subgraph "Private Subnets"
         ApiTaskA["ECS Task (API)"]
         ApiTaskB["ECS Task (API)"]
       end
-      subgraph "Public Subnets " 
-        NginxTaskA["ECS Task (Nginx)"]
-        NginxTaskB["ECS Task (Nginx)"]
-      end
       
+      User[Internet User] --> ALB
       ALB --> NginxTaskA
       ALB --> NginxTaskB
-      NginxTaskA -- "/api" --> ALB
+
+      %% Internal service-to-service communication
+      NginxTaskA -- "/api requests" --> ApiTaskA
+      NginxTaskB -- "/api requests" --> ApiTaskB
       
-      ALB -- "Internal Traffic" --> ApiTaskA
-      ALB -- "Internal Traffic" --> ApiTaskB
-      ApiTaskA -- "Outbound" --> NAT
-      ApiTaskB -- "Outbound" --> NAT
+      %% Outbound traffic from private subnets
+      ApiTaskA -- "Outbound to ECR" --> NAT
+      ApiTaskB -- "Outbound to ECR" --> NAT
       NAT --> ECR
     end
   end
-  User --> ALB
 ```
 
 **3. Component-to-Resource Mapping Table**
