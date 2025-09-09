@@ -34,12 +34,20 @@ graph TD
   end
 
   User[Internet User] --> ALB
-  ALB -- "/" --> NginxTaskA
-  ALB -- "/" --> NginxTaskB
-  ALB -- "/api" --> ApiTaskA
-  ALB -- "/api" --> ApiTaskB
-  NginxTaskA -- Pulls image --> ECR
-  ApiTaskA -- Pulls image --> ECR
+  
+  %% ALB only talks to Nginx
+  ALB --> NginxTaskA
+  ALB --> NginxTaskB
+
+  %% Nginx proxies traffic to the API service
+  NginxTaskA -- "/api requests" --> ApiTaskA
+  NginxTaskB -- "/api requests" --> ApiTaskB
+  
+  %% Tasks pull images from ECR
+  NginxTaskA -- "Pulls image" --> ECR
+  ApiTaskA -- "Pulls image" --> ECR
+  NginxTaskB -- "Pulls image" --> ECR
+  ApiTaskB -- "Pulls image" --> ECR
 ```
 
 **3. Component-to-Resource Mapping Table**
