@@ -38,8 +38,7 @@ graph TD
         ApiTaskB["ECS Task (API)"]
         DB[AWS RDS Database]
       end
-      
-      User[Internet User] --> ALB
+
       ALB --> NginxTaskA
       ALB --> NginxTaskB
 
@@ -57,6 +56,7 @@ graph TD
       NAT --> ECR
     end
   end
+  User[Internet User] --> ALB
 ```
 
 **3. Component-to-Resource Mapping Table**

@@ -39,8 +39,7 @@ graph TD
         ApiTaskA["ECS Task (API)"]
         ApiTaskB["ECS Task (API)"]
       end
-      
-      User[Internet User] --> ALB
+
       ALB --> NginxTaskA
       ALB --> NginxTaskB
 
@@ -54,6 +53,7 @@ graph TD
       NAT --> ECR
     end
   end
+  User[Internet User] --> ALB
 ```
 
 **3. Component-to-Resource Mapping Table**
