@@ -3,10 +3,23 @@
 **1. Logical View (C4 Component Diagram)**
 ```mermaid
 C4Component
-  // ... (existing components are unchanged) ...
-  System_Ext(cicd, "CI/CD Pipeline", "GitHub Actions")
-  System_Ext(aws, "Amazon Web Services")
+  title Component Diagram for RegiTrack with CI/CD
 
+  Person(admin, "Administrator", "Views and manages vehicle data.")
+  
+  System_Boundary(regitrack, "RegiTrack System") {
+    Container(frontend, "Frontend Service", "React served by Nginx", "Serves the static UI assets.")
+    Container(backend, "Backend API", "Node.js, Express", "Provides vehicle data via a REST API.")
+  }
+
+  System_Ext(data, "Vehicle Data Store", "Embedded CSV Files")
+  System_Ext(cicd, "CI/CD Pipeline", "GitHub Actions", "Automates the building and deployment of the system.")
+  System_Ext(aws, "Amazon Web Services", "Hosts the running RegiTrack system.")
+
+  Rel(admin, frontend, "Uses", "HTTPS")
+  Rel(frontend, backend, "Makes API calls to", "JSON/HTTP")
+  Rel(backend, data, "Reads from")
+  
   Rel(cicd, aws, "Deploys to")
 ```
 
