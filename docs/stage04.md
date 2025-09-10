@@ -3,7 +3,7 @@
 **1. Logical View (C4 Component Diagram)**
 ```mermaid
 C4Component
-  title Component Diagram for RegiTrack with CI/CD
+  title Component Diagram for Moving the API service to the private subnets
 
   Person(admin, "Administrator", "Views and manages vehicle data.")
   
